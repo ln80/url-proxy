@@ -34,9 +34,10 @@ jobs:
         run: |
           go mod download
 
-      - name: Build stack
+      - name: Build & Package stack
         run: |
           make stack/build
+          make stack/package
 
       - name: Generate integ test stackname
         run: echo STACK_NAME=url-proxy-integ-test-$(date +%s) >> $GITHUB_ENV

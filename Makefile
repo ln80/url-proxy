@@ -36,7 +36,7 @@ integ-test/deploy:
 		--capabilities CAPABILITY_IAM\
 		--region $(TEST_REGION) \
 		--parameter-overrides $(TEST_PARAMS) \
-		--template-file template.yaml
+		--template-file packaged.yaml
 
 integ-test/run:
 	@cd $(STACK_DIR); \
