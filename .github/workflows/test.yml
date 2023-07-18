@@ -1,0 +1,64 @@
+name: url-proxy@stack tests
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+      
+      - uses: aws-actions/setup-sam@v1
+        with:
+          version: 1.88.0
+
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Validate SAM template
+        run: |
+          make stack/validate
+      
+      - name: Install Go dependencies
+        working-directory: ./stack
+        run: |
+          go mod tidy
+
+      - name: Build stack
+        run: |
+          make stack/build
+
+      - name: Generate integ test stackname
+        run: echo STACK_NAME=url-proxy-integ-test-$(date +%s) >> $GITHUB_ENV
+        if: ${{ github.event_name == 'push' }}
+      
+      - name: Display integ test stackname
+        run: echo ${{ env.STACK_NAME }}
+        if: ${{ github.event_name == 'push' }}
+
+      # integration test only in case of push to branch
+      - name: Setup integ tests
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          make integ-test/deploy
+
+      - name: Run integ tests
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          make integ-test/run
+
+      # in case of failure, make sure to manually run the cmd
+      - name: Clear integ tests
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          make integ-test/clear
