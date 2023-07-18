@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  SAM Template for url-proxy
+
+Globals:
+  Function:
+    Timeout: 10
+    Runtime: provided.al2
+    Handler: bootstrap
+    Tracing: Active
+    Architectures: [ arm64 ]
+
+Resources:
+  ProxyFunction:
+    Type: AWS::Serverless::Function 
+    Metadata:
+      BuildMethod: go1.x
+    Properties:
+      CodeUri: proxy/
+      FunctionUrlConfig:
+        AuthType: NONE
+        InvokeMode: RESPONSE_STREAM
+
+Outputs:
+  ProxyFunctionUrl:
+    Description: "Proxy Function URL"
+    Value: !GetAtt ProxyFunctionUrl.FunctionUrl
